@@ -71,7 +71,7 @@ async def list_models(x_api_key: str = Header(...)):
             models.append({"id": model_id, "label": m.display_name or model_id})
         return {"models": models}
     except genai_errors.ClientError as e:
-        status_code = getattr(e, "status_code", 400)
+        status_code = getattr(e, "code", 400)
         if status_code in (401, 403):
             raise HTTPException(status_code=401, detail="Invalid API key.")
         raise HTTPException(status_code=400, detail=str(e))
@@ -89,7 +89,7 @@ async def get_insight(req: InsightRequest, x_api_key: str = Header(...)):
         )
         return {"message": response.text}
     except genai_errors.ClientError as e:
-        status_code = getattr(e, "status_code", 400)
+        status_code = getattr(e, "code", 400)
         if status_code in (401, 403):
             raise HTTPException(status_code=401, detail="Invalid API key.")
         raise HTTPException(status_code=400, detail=str(e))
