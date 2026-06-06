@@ -61,9 +61,11 @@ def patch_genai(monkeypatch):
     return _install
 
 
-def client_error(code: int) -> genai_errors.ClientError:
-    """Build a real ``ClientError`` carrying the given HTTP status code."""
-    return genai_errors.ClientError(code, {"error": {"message": f"status {code}"}})
+def client_error(code: int, message: str | None = None) -> genai_errors.ClientError:
+    """Build a real ``ClientError`` carrying the given HTTP status and message."""
+    return genai_errors.ClientError(
+        code, {"error": {"message": message or f"status {code}"}}
+    )
 
 
 def fake_model(name: str, *, display_name: str | None, actions: list[str]):

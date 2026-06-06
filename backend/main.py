@@ -58,6 +58,19 @@ def build_prompt(req: InsightRequest) -> str:
     )
 
 
+def _client_error_to_http(e: genai_errors.ClientError) -> HTTPException:
+    """Map a Gemini client error to a clean HTTP response.
+
+    An invalid API key surfaces either as a 401/403 or — more commonly — as a
+    400 carrying an ``API_KEY_INVALID`` reason. Both collapse to a friendly 401
+    so the raw upstream error is never leaked to the client.
+    """
+    code = getattr(e, "code", 400)
+    if code in (401, 403) or "API_KEY_INVALID" in str(e):
+        return HTTPException(status_code=401, detail="Invalid API key.")
+    return HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/api/models")
 async def list_models(x_api_key: str = Header(...)):
     try:
@@ -71,10 +84,7 @@ async def list_models(x_api_key: str = Header(...)):
             models.append({"id": model_id, "label": m.display_name or model_id})
         return {"models": models}
     except genai_errors.ClientError as e:
-        status_code = getattr(e, "code", 400)
-        if status_code in (401, 403):
-            raise HTTPException(status_code=401, detail="Invalid API key.")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise _client_error_to_http(e) from e
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI service error: {str(e)}")
 
@@ -89,9 +99,6 @@ async def get_insight(req: InsightRequest, x_api_key: str = Header(...)):
         )
         return {"message": response.text}
     except genai_errors.ClientError as e:
-        status_code = getattr(e, "code", 400)
-        if status_code in (401, 403):
-            raise HTTPException(status_code=401, detail="Invalid API key.")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise _client_error_to_http(e) from e
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI service error: {str(e)}")

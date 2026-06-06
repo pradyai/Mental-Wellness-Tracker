@@ -55,11 +55,26 @@ def test_list_models_requires_api_key_header(client):
     assert client.get("/api/models").status_code == 422
 
 
-def test_list_models_invalid_key_returns_401(client, patch_genai):
+def test_list_models_invalid_key_403_returns_401(client, patch_genai):
     patch_genai(raise_exc=client_error(403))
     resp = client.get("/api/models", headers={"X-API-Key": "bad"})
     assert resp.status_code == 401
     assert resp.json()["detail"] == "Invalid API key."
+
+
+def test_list_models_invalid_key_400_returns_401(client, patch_genai):
+    # Gemini reports a bad key as a 400 with an API_KEY_INVALID reason, not 401.
+    patch_genai(raise_exc=client_error(400, "API key not valid. API_KEY_INVALID"))
+    resp = client.get("/api/models", headers={"X-API-Key": "bad"})
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "Invalid API key."
+
+
+def test_list_models_other_client_error_stays_400(client, patch_genai):
+    # A non-key client error must not be masked as an auth failure.
+    patch_genai(raise_exc=client_error(400, "model not found"))
+    resp = client.get("/api/models", headers={"X-API-Key": "key"})
+    assert resp.status_code == 400
 
 
 def test_list_models_unexpected_error_returns_502(client, patch_genai):
