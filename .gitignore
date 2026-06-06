@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+venv/
+__pycache__/
+*.pyc
 
 # Build outputs
 dist/
@@ -24,3 +27,9 @@ pnpm-debug.log*
 
 # Deploy
 .vercel/
+
+# Docs
+docs/
+
+
+.vercel

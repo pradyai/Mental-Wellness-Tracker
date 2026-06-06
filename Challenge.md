@@ -16,4 +16,11 @@ Evaluation Criterion (very important) (highest priority) :
 
     Accessibility: How usabel the solution is for diverse users and environments
 
+    Problem Statement Alignment: Our app must align with the challenge problem statement and not deviate from it.
+
 We must score extremely high on these evaluation criterion. 
+
+Final Output: 
+
+    Github Link of the public repo 
+    Vercel Link of the deployed app
